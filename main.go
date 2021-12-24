@@ -42,7 +42,7 @@ var routes = map[string]TxFunc{
 }
 
 func ver(stub shim.ChaincodeStubInterface, params []string) peer.Response {
-	return shim.Success([]byte("Kiesnet Contract v1.2 created by Key Inside Co., Ltd."))
+	return shim.Success([]byte("Kiesnet Contract v1.3 created by Key Inside Co., Ltd."))
 }
 
 func response(payload Payload) peer.Response {

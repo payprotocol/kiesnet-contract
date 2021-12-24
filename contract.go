@@ -17,6 +17,7 @@ type Contract struct {
 	ApprovedCount int          `json:"approved_count"`
 	CCID          string       `json:"ccid"`
 	Document      string       `json:"document"`
+	Callback      string       `json:"callback,omitempty"`
 	CreatedTime   *txtime.Time `json:"created_time,omitempty"`
 	UpdatedTime   *txtime.Time `json:"updated_time,omitempty"`
 	ExpiryTime    *txtime.Time `json:"expiry_time,omitempty"`

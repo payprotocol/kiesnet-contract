@@ -3,6 +3,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"strconv"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
@@ -40,8 +41,12 @@ func contractApprove(stub shim.ChaincodeStubInterface, params []string) peer.Res
 
 	if contract.ExecutedTime != nil {
 		// execute contract
-		if err = invokeExecuteContract(stub, contract); err != nil {
+		callback, err := invokeExecuteContract(stub, contract)
+		if err != nil {
 			return shim.Error("failed to execute the contract|" + err.Error())
+		}
+		if callback != nil {
+			contract.Callback = *callback
 		}
 	}
 
@@ -161,7 +166,7 @@ func contractDisapprove(stub shim.ChaincodeStubInterface, params []string) peer.
 	}
 
 	// cancel contract
-	if err = invokeCancelContract(stub, contract); err != nil {
+	if _, err = invokeCancelContract(stub, contract); err != nil {
 		return shim.Error("failed to cancel the contract|" + err.Error())
 	}
 
@@ -225,21 +230,22 @@ func contractList(stub shim.ChaincodeStubInterface, params []string) peer.Respon
 }
 
 // helpers
-
-func invokeCallback(stub shim.ChaincodeStubInterface, ccid string, args [][]byte) error {
+func invokeCallback(stub shim.ChaincodeStubInterface, ccid string, args [][]byte) (*string, error) {
 	res := stub.InvokeChaincode(ccid, args, "")
+
 	if res.GetStatus() == 200 {
-		return nil
+		callback := base64.StdEncoding.EncodeToString(res.GetPayload())
+		return &callback, nil
 	}
-	return errors.New(res.GetMessage())
+	return nil, errors.New(res.GetMessage())
 }
 
-func invokeExecuteContract(stub shim.ChaincodeStubInterface, contract *Contract) error {
+func invokeExecuteContract(stub shim.ChaincodeStubInterface, contract *Contract) (*string, error) {
 	args := [][]byte{[]byte("contract/execute"), []byte(contract.DOCTYPEID), []byte(contract.Document)}
 	return invokeCallback(stub, contract.CCID, args)
 }
 
-func invokeCancelContract(stub shim.ChaincodeStubInterface, contract *Contract) error {
+func invokeCancelContract(stub shim.ChaincodeStubInterface, contract *Contract) (*string, error) {
 	args := [][]byte{[]byte("contract/cancel"), []byte(contract.DOCTYPEID), []byte(contract.Document)}
 	return invokeCallback(stub, contract.CCID, args)
 }
